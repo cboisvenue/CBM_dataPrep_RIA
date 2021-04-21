@@ -532,16 +532,18 @@ Init <- function(sim) {
   # study area raster
   RIArtm <- prepInputs(url = "https://drive.google.com/file/d/1h7gK44g64dwcoqhij24F2K54hs5e35Ci/view?usp=sharing",
                        destinationPath = dPath)
-  # forest inventory info. this makes a raster stack of the two main rasters, gcIDRaster and ageRaster
+  # This works for the fire return interval runs
+  #forest inventory info. this makes a raster stack of the two main rasters, gcIDRaster and ageRaster
   RIA_VRIstack <- Cache(prepInputsVRI,VRIurl = "https://drive.google.com/file/d/1LXSX8M46EnsTCM3wGhkiMgqWcqTubC12",
                         dPath = dPath,
                         rasterToMatch = RIArtm
   )
   names(RIA_VRIstack) <- c("gcIDRaster", "ageRaster")
 
+
   #2. Seperate the rasters in the stack
   gcIDRaster <- RIA_VRIstack$gcIDRaster
-  ageRaster <- RIA_VRIstack$ageRaster
+  ageRaster <- RIA_VRIstack$ageRaster # this is VRI2020 age raster
 
 
   #3. Make a masterRaster and make sure there are no NAs
@@ -550,6 +552,51 @@ Init <- function(sim) {
   gcIDWData <- !is.na(gcIDRaster[])
   masterRaster[ageWData] <- gcIDRaster[ageWData]
   gcIDRaster[!ageWData] <- NA
+
+  ## need to check if the VRI2015 age has values in all the same pixels. It
+  ## would be better to use the same masterRaster for all three RIA sims sets,
+  ## fireReturnInterval,presentDay and the two harvest scenarios.
+  ## TODO: the prespInputsVRI function makes a stack of two rasters but in the
+  ## case of the presentDay sims, we need a different age. This age raster
+  ## starts from the ESRI file here
+  ## https://pub.data.gov.bc.ca/datasets/02dba161-fdb7-48ae-a4bb-bd6ef017c36d/2015/VEG_COMP_LYR_L1_POLY_2015.gdb.zip
+  ## which is the 2015VRI for the province of BC. This is processes
+
+  # 3.1 make a new age raster that starts from the VRI2015
+  # VRI2015 to back-build the age raster
+
+
+  # sa <- as(extent(masterRaster), "SpatialPolygons")
+  # crs(sa) <- crs(masterRaster)
+  # loadAge <- function(x, field = "PROJ_AGE_1") {
+  #   # a <- Cache(sf::st_read, x) # I used Cache during my development because this takes 37 minutes to run -- I was sick of running it again and again
+  #   a <- sf::st_read(x)
+  #   a1 <- a[, field]
+  #   return(a1)
+  # }
+  # a <- Cache(prepInputs,
+  #            url = "https://pub.data.gov.bc.ca/datasets/02dba161-fdb7-48ae-a4bb-bd6ef017c36d/2015/VEG_COMP_LYR_L1_POLY_2015.gdb.zip",
+  #            #fun = quote(loadAge(x = targetFilePath,
+  #            #field = "PROJ_AGE_1")),
+  #            targetFile = "VEG_COMP_LYR_L1_POLY_2015.gdb.zip",
+  #            archive = NA)
+  # #studyArea = sa
+  #                 #rasterTomatch = masterRaster)
+  # vriAge2015 <- sf::st_read("C:/Celine/github/spadesCBM_RIA/VEG_COMP_LYR_L1_POLY_2015.gdb.zip")
+  #
+  # b <- sf::st_transform(vriAge2015, st_crs(sa))
+  #
+  # ageRaster2015 <- fasterize::fasterize(b, masterRaster, field = "PROJ_AGE_1")
+  # ## HERE
+  # ageRaster2015[] <- as.integer(ageRaster2015[])
+  ageRaster2015 <- Cache(prepInputsVRIage,
+                   VRIurl = "https://pub.data.gov.bc.ca/datasets/02dba161-fdb7-48ae-a4bb-bd6ef017c36d/2015/VEG_COMP_LYR_L1_POLY_2015.gdb.zip",
+                   dPath = dPath,
+                   rasterToMatch = masterRaster,
+                   targetFile = "VEG_COMP_LYR_L1_POLY_2015.gdb.zip",
+                   field = "PROJ_AGE_1")
+browser()
+
 
 
   #4. Make the ecozone Raster (ecoRaster)"http://sis.agr.gc.ca/cansis/nsdb/ecostrat/zone/ecozone_shp.zip"
@@ -596,11 +643,20 @@ Init <- function(sim) {
                           destinationPath = dPath) #you probably already have this raster - RIA_RTM.tif on google
     # need the masterRaster (sim$masterRaster)
     # sparseDT
-    scfmAnnualBurns <- prepInputs(url = 'https://drive.google.com/file/d/1P41fr5fimmxOTGfNRBgjwXetceW6YS1M/view?usp=sharing',
+    # scfmAnnualBurns <- prepInputs(url = 'https://drive.google.com/file/d/1P41fr5fimmxOTGfNRBgjwXetceW6YS1M/view?usp=sharing',
+    #                               destinationPath = 'inputs',
+    #                               overwrite = TRUE,
+    #                               fun = 'readRDS')
+    presentDayBurns <- prepInputs(url = 'https://drive.google.com/file/d/1MjQ5y9Txr1ezv0BatG4b_6FpM6wti1b5/view?usp=sharing',
                                   destinationPath = 'inputs',
                                   overwrite = TRUE,
                                   fun = 'readRDS')
+    presentDayHarvest <- prepInputs(url = 'https://drive.google.com/file/d/1Ca-kPun7_VF2xV8s40IJ9hri3Ok-6qx5/view?usp=sharing',
+                                    destinationPath = 'inputs',
+                                    overwrite = TRUE,
+                                    fun = 'readRDS')
 
+    # this adjustment is only needed when we are using a different
     IndexRTM <- setValues(RIA_RTM, 1:ncell(RIA_RTM))
 
     #postProcess to match tempTHLB
@@ -614,8 +670,19 @@ Init <- function(sim) {
                           thlbIndex = getValues(IndexTHLB))
     sim$distIndexDT <- indexDT[!is.na(rtmIndex)]
 
+    # in this case: they are equal.
+    # dim(spadesCBMout$distIndexDT)
+    # [1] 3112425       2
+    # > length(which(spadesCBMout$distIndexDT$rtmIndex == spadesCBMout$distIndexDT$thlbIndex))
+    # [1] 3112425
+
+    # presentDay runs will require an extra step: putting the DTs together with
+    # a rasterID of 1 for fire and 2 for harvest.
+    presentDayBurns[, events := 1L]
+    presentDayHarvest[, events := 2L]
+    allDist <- rbind(presentDayBurns, presentDayHarvest)
     #the NAs in rtmIndex are pixels that are not in THLB (but inside the landscape) - we can remove them
-    sim$disturbanceRasters <- scfmAnnualBurns
+    sim$disturbanceRasters <- allDist
 
     ## a function indexAnnualFire() may be used in the annual event
     ## of the CBM_core module to extract the year
