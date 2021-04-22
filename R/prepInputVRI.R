@@ -24,6 +24,10 @@ prepInputsVRIage <- function(VRIurl, dPath, rasterToMatch, targetFile, field = "
  # RIA_VRI <- st_transform(VRIin, crs = st_crs(rasterToMatch))
   ageRaster <- fasterize::fasterize(RIA_VRI, rasterToMatch, field = "PROJ_AGE_1")
   ageRaster[] <- as.integer(ageRaster[])
+  mrWdata <- !is.na(rasterToMatch)
+  ageRaster[!mrWdata] <- NA
   return(ageRaster)
 }
+
+
 

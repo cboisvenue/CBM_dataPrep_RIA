@@ -553,6 +553,7 @@ Init <- function(sim) {
   masterRaster[ageWData] <- gcIDRaster[ageWData]
   gcIDRaster[!ageWData] <- NA
 
+
   ## need to check if the VRI2015 age has values in all the same pixels. It
   ## would be better to use the same masterRaster for all three RIA sims sets,
   ## fireReturnInterval,presentDay and the two harvest scenarios.
