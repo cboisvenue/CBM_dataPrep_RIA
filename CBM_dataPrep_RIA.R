@@ -395,7 +395,7 @@ Init <- function(sim) {
 
   # need to match the historic and last past dist to the spatial unit
   # DECISION: both the last pass and the historic disturbance will be the same
-  # for the fire retunr interval runs
+  # for the fire return interval runs
 
   ## TO DO: in Canada historic DMIDs will always be fire, but the last past may
   ## not, it could be harvest. Make this optional and give the user a message
