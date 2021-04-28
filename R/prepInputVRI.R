@@ -54,4 +54,6 @@ prepInputsVRIage <- function(VRIurl, dPath, rasterToMatch, targetFile, field = "
 # from E
 # Oops... yes. You should (at least studyArea = sa). If you do the useSAcrs then
 # you should be able to omit your st_transform line.
+# currently in this branch of development (April27th, 2021)
+#remotes::install_github("PredictiveEcology/reproducible@gdb_archiveNA")
 

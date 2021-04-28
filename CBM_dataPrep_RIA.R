@@ -558,48 +558,12 @@ Init <- function(sim) {
   ## would be better to use the same masterRaster for all three RIA sims sets,
   ## fireReturnInterval,presentDay and the two harvest scenarios.
   ## TODO: the prespInputsVRI function makes a stack of two rasters but in the
-  ## case of the presentDay sims, we need a different age. This age raster
-  ## starts from the ESRI file here
+  ## case of the presentDay sims, we need a different age (DONE, created the
+  ## function prepInputVIRage). This age raster starts from the ESRI file here
   ## https://pub.data.gov.bc.ca/datasets/02dba161-fdb7-48ae-a4bb-bd6ef017c36d/2015/VEG_COMP_LYR_L1_POLY_2015.gdb.zip
-  ## which is the 2015VRI for the province of BC. This is processes
+  ## which is the 2015VRI for the province of BC.
 
-  # 3.1 make a new age raster that starts from the VRI2015
-  # VRI2015 to back-build the age raster
-
-
-  # sa <- as(extent(masterRaster), "SpatialPolygons")
-  # crs(sa) <- crs(masterRaster)
-  # loadAge <- function(x, field = "PROJ_AGE_1") {
-  #   # a <- Cache(sf::st_read, x) # I used Cache during my development because this takes 37 minutes to run -- I was sick of running it again and again
-  #   a <- sf::st_read(x)
-  #   a1 <- a[, field]
-  #   return(a1)
-  # }
-  # a <- Cache(prepInputs,
-  #            url = "https://pub.data.gov.bc.ca/datasets/02dba161-fdb7-48ae-a4bb-bd6ef017c36d/2015/VEG_COMP_LYR_L1_POLY_2015.gdb.zip",
-  #            #fun = quote(loadAge(x = targetFilePath,
-  #            #field = "PROJ_AGE_1")),
-  #            targetFile = "VEG_COMP_LYR_L1_POLY_2015.gdb.zip",
-  #            archive = NA)
-  # #studyArea = sa
-  #                 #rasterTomatch = masterRaster)
-  # vriAge2015 <- sf::st_read("C:/Celine/github/spadesCBM_RIA/VEG_COMP_LYR_L1_POLY_2015.gdb.zip")
-  #
-  # b <- sf::st_transform(vriAge2015, st_crs(sa))
-  #
-  # ageRaster2015 <- fasterize::fasterize(b, masterRaster, field = "PROJ_AGE_1")
-  # ## HERE
-  # ageRaster2015[] <- as.integer(ageRaster2015[])
-  ageRaster2015 <- Cache(prepInputsVRIage,
-                   VRIurl = "https://pub.data.gov.bc.ca/datasets/02dba161-fdb7-48ae-a4bb-bd6ef017c36d/2015/VEG_COMP_LYR_L1_POLY_2015.gdb.zip",
-                   dPath = dPath,
-                   rasterToMatch = masterRaster,
-                   targetFile = "VEG_COMP_LYR_L1_POLY_2015.gdb.zip",
-                   field = "PROJ_AGE_1")
-browser()
-
-
-
+### changing th order so we can build the PresentDat ageRaster1985
   #4. Make the ecozone Raster (ecoRaster)"http://sis.agr.gc.ca/cansis/nsdb/ecostrat/zone/ecozone_shp.zip"
   ecozone <- Cache(prepInputsEcozones, url = "http://sis.agr.gc.ca/cansis/nsdb/ecostrat/zone/ecozone_shp.zip",
                    dPath = dPath,
@@ -698,24 +662,65 @@ browser()
     #                    datatype = "INT1U",
     #                    useGDAL = FALSE)
 
-      ## TODO this is a brick, with 526 rasters that low RAM system cannot
-      ## handle. Instead a sparseDT was create and is read-in here. We need to
-      ## add here the capacity to deal with a bunch of rasters in a folder,
-      ## (like in the SK runs), a stack of rasters (below), raster brick (above)
-      ## or polygons? OR a sparseDT
+    ## TODO this is a brick, with 526 rasters that low RAM system cannot
+    ## handle. Instead a sparseDT was create and is read-in here. We need to
+    ## add here the capacity to deal with a bunch of rasters in a folder,
+    ## (like in the SK runs), a stack of rasters (below), raster brick (above)
+    ## or polygons? OR a sparseDT
     # stack
-      # sim$disturbanceRasters <- Cache(prepInputs,
-      #                               url = "https://drive.google.com/file/d/1fJIPVMyDu66CopA-YP-xSdP2Zx1Ll_q8",
-      #                               fun = "raster::stack",
-      #                               rasterToMatch = masterRaster,
-      #                               useGDAL = FALSE)
+    # sim$disturbanceRasters <- Cache(prepInputs,
+    #                               url = "https://drive.google.com/file/d/1fJIPVMyDu66CopA-YP-xSdP2Zx1Ll_q8",
+    #                               fun = "raster::stack",
+    #                               rasterToMatch = masterRaster,
+    #                               useGDAL = FALSE)
     # rasters in a folder
-      # distHere <- extractURL(disturbanceRasters)
-      # sim$disturbanceRasters <- list.files(distHere,full.names = TRUE) %>%
-      #   grep(., pattern = ".grd$", value = TRUE)
-      # # if all fails
+    # distHere <- extractURL(disturbanceRasters)
+    # sim$disturbanceRasters <- list.files(distHere,full.names = TRUE) %>%
+    #   grep(., pattern = ".grd$", value = TRUE)
+    # # if all fails
     # or just one raster? or polygons?
   }
+
+  # 9 make a new age raster that starts from the VRI2015
+  # VRI2015 to back-build the age raster
+
+
+  # sa <- as(extent(masterRaster), "SpatialPolygons")
+  # crs(sa) <- crs(masterRaster)
+  # loadAge <- function(x, field = "PROJ_AGE_1") {
+  #   # a <- Cache(sf::st_read, x) # I used Cache during my development because this takes 37 minutes to run -- I was sick of running it again and again
+  #   a <- sf::st_read(x)
+  #   a1 <- a[, field]
+  #   return(a1)
+  # }
+  # a <- Cache(prepInputs,
+  #            url = "https://pub.data.gov.bc.ca/datasets/02dba161-fdb7-48ae-a4bb-bd6ef017c36d/2015/VEG_COMP_LYR_L1_POLY_2015.gdb.zip",
+  #            #fun = quote(loadAge(x = targetFilePath,
+  #            #field = "PROJ_AGE_1")),
+  #            targetFile = "VEG_COMP_LYR_L1_POLY_2015.gdb.zip",
+  #            archive = NA)
+  # #studyArea = sa
+  #                 #rasterTomatch = masterRaster)
+  # vriAge2015 <- sf::st_read("C:/Celine/github/spadesCBM_RIA/VEG_COMP_LYR_L1_POLY_2015.gdb.zip")
+  #
+  # b <- sf::st_transform(vriAge2015, st_crs(sa))
+  #
+  # ageRaster2015 <- fasterize::fasterize(b, masterRaster, field = "PROJ_AGE_1")
+  # ## HERE
+  # ageRaster2015[] <- as.integer(ageRaster2015[])
+  ageRaster2015 <- Cache(prepInputsVRIage,
+                   VRIurl = "https://pub.data.gov.bc.ca/datasets/02dba161-fdb7-48ae-a4bb-bd6ef017c36d/2015/VEG_COMP_LYR_L1_POLY_2015.gdb.zip",
+                   dPath = dPath,
+                   rasterToMatch = masterRaster,
+                   targetFile = "VEG_COMP_LYR_L1_POLY_2015.gdb.zip",
+                   field = "PROJ_AGE_1")
+browser()
+
+
+
+
+
+
 
   #stopifnot(length(sim$disturbanceRasters) > 0)
 
