@@ -615,6 +615,7 @@ Init <- function(sim) {
     sim$distIndexDT <- indexDT[!is.na(rtmIndex)]
 
     #the NAs in rtmIndex are pixels that are not in THLB (but inside the landscape) - we can remove them
+    scfmAnnualBurns[,events := 1L]
     sim$disturbanceRasters <- scfmAnnualBurns
 
     ## a function indexAnnualFire() may be used in the annual event
