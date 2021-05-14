@@ -595,8 +595,9 @@ Init <- function(sim) {
     RIA_RTM <- prepInputs(url = 'https://drive.google.com/file/d/1h7gK44g64dwcoqhij24F2K54hs5e35Ci/view?usp=sharing',
                           destinationPath = dPath) #you probably already have this raster - RIA_RTM.tif on google
     # need the masterRaster (sim$masterRaster)
+    # first scfm runs with 4000FRI: https://drive.google.com/file/d/1P41fr5fimmxOTGfNRBgjwXetceW6YS1M/view?usp=sharing',
     # sparseDT
-    scfmAnnualBurns <- prepInputs(url = 'https://drive.google.com/file/d/1P41fr5fimmxOTGfNRBgjwXetceW6YS1M/view?usp=sharing',
+    scfmAnnualBurns <- prepInputs(url = 'https://drive.google.com/file/d/1mserdaJctVuCWPwQW9sIGSKLtSpZtx1n',
                                   destinationPath = 'inputs',
                                   overwrite = TRUE,
                                   fun = 'readRDS')
